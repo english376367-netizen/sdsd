@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Meaning Quiz</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Arial,sans-serif;background:linear-gradient(135deg,#eef7ff,#fff8e8);
+    color:#17324d;padding:16px;
+  }
+  .wrap{max-width:850px;margin:auto}
+  .header{
+    background:linear-gradient(135deg,#1677ff,#5b4bdb);color:white;padding:22px;border-radius:20px;
+    box-shadow:0 8px 24px rgba(30,70,130,.18);margin-bottom:18px
+  }
+  h1{margin:0 0 8px;font-size:25px}
+  .sub{margin:0;line-height:1.5}
+  .progress{margin-top:14px;background:rgba(255,255,255,.25);height:10px;border-radius:20px;overflow:hidden}
+  #bar{height:100%;width:0;background:#ffe66d;transition:.25s}
+  .card{
+    background:white;border-radius:18px;padding:18px;margin:14px 0;
+    box-shadow:0 4px 15px rgba(0,0,0,.07);border:1px solid #e8eef5
+  }
+  .qnum{font-weight:700;color:#1677ff;margin-bottom:8px}
+  .sentence{
+    font-size:18px;font-weight:700;line-height:1.5;background:#f3f8ff;
+    padding:12px;border-radius:12px;margin-bottom:13px
+  }
+  .option{
+    display:block;padding:12px 14px;margin:9px 0;border:2px solid #e4eaf1;border-radius:12px;
+    cursor:pointer;background:white;transition:.15s;font-size:16px;line-height:1.4
+  }
+  .option:hover{border-color:#6ea8ff;background:#f7fbff}
+  .option input{margin-right:9px}
+  .correct{background:#e8fff0!important;border-color:#23a455!important}
+  .wrong{background:#fff0f0!important;border-color:#e34b4b!important}
+  .explain{display:none;margin-top:10px;padding:12px;border-radius:12px;background:#fff8d9;line-height:1.5}
+  .result{
+    display:none;text-align:center;background:white;border-radius:18px;padding:20px;
+    margin:18px 0;box-shadow:0 4px 15px rgba(0,0,0,.08)
+  }
+  .score{font-size:28px;font-weight:800;color:#1677ff}
+  button{
+    border:0;border-radius:14px;padding:14px 22px;font-size:17px;font-weight:700;cursor:pointer;
+    background:#1677ff;color:white;box-shadow:0 5px 15px rgba(22,119,255,.25);margin:8px
+  }
+  button:hover{filter:brightness(.96)}
+  .secondary{background:#5b4bdb}
+  .tip{font-size:14px;color:#53677a;margin-top:8px}
+  @media(max-width:600px){
+    body{padding:10px}.header{padding:18px}h1{font-size:21px}
+    .sentence{font-size:16px}.option{font-size:15px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>Meaning & Understanding Quiz</h1>
+    <p class="sub">Read each English sentence and choose the Vietnamese meaning that is closest to the original sentence.</p>
+    <div class="progress"><div id="bar"></div></div>
+  </div>
+
+  <div id="quiz"></div>
+
+  <div class="result" id="result">
+    <div>Your score</div>
+    <div class="score" id="score"></div>
+    <div id="message"></div>
+    <button onclick="resetQuiz()">Try Again</button>
+  </div>
+
+  <div style="text-align:center">
+    <button onclick="checkQuiz()">Check Answers</button>
+    <button class="secondary" onclick="resetQuiz()">Reset</button>
+    <div class="tip">After checking, the correct answer and Vietnamese explanation will appear.</div>
+  </div>
+</div>
+
+<script>
+const questions = [
+{q:"My friend is very caring. She often looks after me.",
+ a:["Bạn tôi rất chu đáo. Cô ấy thường chăm sóc tôi.","Bạn tôi rất lười. Cô ấy thường tránh tôi.","Bạn tôi rất nhút nhát. Cô ấy không nói chuyện với tôi.","Bạn tôi rất thông minh. Cô ấy thường làm bài kiểm tra."],
+ e:"caring = chu đáo, quan tâm; look after = chăm sóc.", c:0},
+{q:"Binh is a hard-working pupil. He always finishes all homework.",
+ a:["Bình là học sinh lười. Bạn ấy thường quên bài tập.","Bình là học sinh chăm chỉ. Bạn ấy luôn hoàn thành tất cả bài tập về nhà.","Bình là học sinh nhút nhát. Bạn ấy không thích làm bài.","Bình là học sinh vui tính. Bạn ấy thường chơi sau giờ học."],
+ e:"hard-working = chăm chỉ; finish homework = hoàn thành bài tập về nhà.", c:1},
+{q:"Lena has short blond hair with blue eyes.",
+ a:["Lena có mái tóc dài màu đen và mắt nâu.","Lena có tóc ngắn màu vàng và mắt xanh.","Lena có tóc xoăn màu nâu và mắt đen.","Lena có mái tóc dài màu vàng và mắt xanh."],
+ e:"short blond hair = tóc vàng ngắn; blue eyes = mắt xanh.", c:1},
+{q:"Lan is friendly. She has a lot of friends.",
+ a:["Lan thân thiện. Cô ấy có rất nhiều bạn.","Lan nhút nhát. Cô ấy không có bạn.","Lan lười biếng. Cô ấy ở nhà cả ngày.","Lan cẩn thận. Cô ấy luôn học bài."],
+ e:"friendly = thân thiện; a lot of friends = nhiều bạn.", c:0},
+{q:"I am not active. I like sitting in the classroom at break.",
+ a:["Tôi rất năng động và thích chạy trong giờ ra chơi.","Tôi không năng động. Tôi thích ngồi trong lớp vào giờ ra chơi.","Tôi rất chăm chỉ. Tôi luôn làm bài vào giờ ra chơi.","Tôi không vui. Tôi thích về nhà vào giờ ra chơi."],
+ e:"not active = không năng động; sitting = ngồi; at break = vào giờ ra chơi.", c:1},
+{q:"Mr Hung is talking to your mother.",
+ a:["Ông Hùng đang nói chuyện với mẹ bạn.","Ông Hùng thường gặp mẹ bạn.","Ông Hùng không biết mẹ bạn.","Ông Hùng đang viết thư cho mẹ bạn."],
+ e:"is talking = đang nói chuyện; to your mother = với mẹ của bạn.", c:0},
+{q:"Lan is really kind. She always helps other people.",
+ a:["Lan thực sự tốt bụng. Cô ấy luôn giúp đỡ người khác.","Lan thực sự ích kỷ. Cô ấy không giúp ai.","Lan rất nhút nhát. Cô ấy luôn ở nhà.","Lan rất nhanh. Cô ấy luôn chạy."],
+ e:"kind = tốt bụng; help other people = giúp đỡ người khác.", c:0},
+{q:"Nick likes meeting new people. He’s very friendly.",
+ a:["Nick thích tránh người mới. Cậu ấy rất nhút nhát.","Nick thích gặp người mới. Cậu ấy rất thân thiện.","Nick ghét nói chuyện. Cậu ấy rất im lặng.","Nick thích ở một mình. Cậu ấy rất lười."],
+ e:"meeting new people = gặp những người mới; friendly = thân thiện.", c:1},
+{q:"Paola often helps me with my homework. She’s very kind.",
+ a:["Paola thường giúp tôi làm bài tập. Cô ấy rất tốt bụng.","Paola thường lấy bài tập của tôi. Cô ấy rất lười.","Paola không bao giờ giúp tôi. Cô ấy rất lạnh lùng.","Paola thường chơi thể thao. Cô ấy rất khỏe."],
+ e:"help me with my homework = giúp tôi làm bài tập; kind = tốt bụng.", c:0},
+{q:"Kim is very careful. She pays attention to what she does.",
+ a:["Kim rất bất cẩn. Cô ấy không quan tâm mình làm gì.","Kim rất cẩn thận. Cô ấy chú ý đến những việc mình làm.","Kim rất vui tính. Cô ấy luôn kể chuyện cười.","Kim rất nhút nhát. Cô ấy không làm gì cả."],
+ e:"careful = cẩn thận; pay attention to = chú ý đến.", c:1},
+{q:"Nam can wait hours for his friends without getting angry. He is a patient boy.",
+ a:["Nam có thể chờ bạn hàng giờ mà không tức giận. Cậu ấy là một cậu bé kiên nhẫn.","Nam không thể chờ bạn. Cậu ấy rất nóng tính.","Nam luôn đến muộn. Cậu ấy rất lười.","Nam không thích bạn bè. Cậu ấy rất nhút nhát."],
+ e:"wait hours = chờ hàng giờ; without getting angry = không tức giận; patient = kiên nhẫn.", c:0},
+{q:"Get up! Don’t be lazy. Be hard-working, Susan!",
+ a:["Dậy đi! Đừng lười biếng. Hãy chăm chỉ lên, Susan!","Ngồi xuống! Đừng chăm chỉ. Hãy nghỉ ngơi, Susan!","Dậy đi! Đừng cẩn thận. Hãy chạy đi, Susan!","Ngủ đi! Đừng làm bài tập, Susan!"],
+ e:"get up = đứng dậy/dậy; lazy = lười biếng; hard-working = chăm chỉ.", c:0},
+{q:"Patrick is very clever. He always does well in tests.",
+ a:["Patrick rất thông minh. Cậu ấy luôn làm bài kiểm tra tốt.","Patrick rất lười. Cậu ấy luôn bỏ bài kiểm tra.","Patrick rất thấp. Cậu ấy luôn đến trường muộn.","Patrick rất buồn. Cậu ấy không thích học."],
+ e:"clever = thông minh; do well in tests = làm bài kiểm tra tốt.", c:0},
+{q:"Children are often shy. They hide behind their mothers when guests come.",
+ a:["Trẻ em thường nhút nhát. Chúng trốn sau mẹ khi khách đến.","Trẻ em thường vui vẻ. Chúng chào khách khi khách đến.","Trẻ em thường thông minh. Chúng làm bài kiểm tra.","Trẻ em thường cẩn thận. Chúng nấu ăn."],
+ e:"shy = nhút nhát; hide behind = trốn phía sau; guests = khách.", c:0},
+{q:"Lan is always hard-working. She studies more than four hours a day and never misses her homework.",
+ a:["Lan luôn chăm chỉ. Cô ấy học hơn bốn giờ mỗi ngày và không bao giờ bỏ bài tập.","Lan luôn lười biếng. Cô ấy chỉ học một giờ mỗi ngày.","Lan luôn nhút nhát. Cô ấy không làm bài tập.","Lan luôn vui tính. Cô ấy chỉ chơi cả ngày."],
+ e:"hard-working = chăm chỉ; more than four hours = hơn bốn giờ; never misses her homework = không bao giờ bỏ bài tập.", c:0},
+{q:"My mum always asks me to wash my hands before meals.",
+ a:["Mẹ tôi luôn bảo tôi rửa tay trước bữa ăn.","Mẹ tôi luôn bảo tôi rửa chân sau bữa ăn.","Mẹ tôi bảo tôi đánh răng trước khi ngủ.","Mẹ tôi bảo tôi rửa mặt sau khi học."],
+ e:"wash my hands = rửa tay; before meals = trước bữa ăn.", c:0},
+{q:"The baby next to me is very talkative. He talks all the time, which really annoys me.",
+ a:["Em bé bên cạnh tôi rất ít nói. Em bé luôn ngủ.","Em bé bên cạnh tôi rất hay nói. Em bé nói suốt, điều đó thực sự làm tôi khó chịu.","Em bé bên cạnh tôi rất cẩn thận. Em bé luôn học bài.","Em bé bên cạnh tôi rất buồn. Em bé không nói gì."],
+ e:"talkative = hay nói; all the time = suốt/luôn luôn; annoy = làm khó chịu.", c:1},
+{q:"The part between the head and the body is the neck.",
+ a:["Bộ phận giữa đầu và cơ thể là cổ.","Bộ phận giữa đầu và cơ thể là vai.","Bộ phận giữa đầu và cơ thể là cánh tay.","Bộ phận giữa đầu và cơ thể là hông."],
+ e:"neck = cổ.", c:0},
+{q:"Next summer Milke’s parents are taking him to New York to see a new film.",
+ a:["Mùa hè tới, bố mẹ Milke sẽ đưa cậu ấy đến New York để xem một bộ phim mới.","Mùa hè tới, Milke sẽ ở nhà để học.","Mùa hè tới, bố mẹ Milke sẽ đến London mà không có cậu ấy.","Mùa hè tới, Milke sẽ đưa bố mẹ đi xem phim."],
+ e:"are taking him = sẽ đưa cậu ấy đi; to New York = đến New York; to see a new film = để xem một bộ phim mới.", c:0},
+{q:"My brother can do all difficult Math exercises. He is an intelligent student.",
+ a:["Anh/em trai tôi có thể làm tất cả bài Toán khó. Cậu ấy là một học sinh thông minh.","Anh/em trai tôi không làm được bài Toán. Cậu ấy rất lười.","Anh/em trai tôi chỉ thích thể thao. Cậu ấy không học Toán.","Anh/em trai tôi rất bất cẩn khi làm bài."],
+ e:"difficult Math exercises = bài tập Toán khó; intelligent = thông minh.", c:0},
+{q:"Please be careful when you have to use fire to cook.",
+ a:["Hãy cẩn thận khi bạn phải sử dụng lửa để nấu ăn.","Hãy vui vẻ khi bạn sử dụng nước để uống.","Hãy im lặng khi bạn học bài.","Hãy nhanh lên khi bạn đi học."],
+ e:"be careful = hãy cẩn thận; use fire to cook = sử dụng lửa để nấu ăn.", c:0},
+{q:"Daisy is very confident to take the test. She is a very good student.",
+ a:["Daisy rất tự tin khi làm bài kiểm tra. Cô ấy là một học sinh rất giỏi.","Daisy rất sợ làm bài kiểm tra. Cô ấy là học sinh yếu.","Daisy rất buồn vì cô ấy không học bài.","Daisy rất nhút nhát và không muốn đi học."],
+ e:"confident = tự tin; take the test = làm bài kiểm tra.", c:0},
+{q:"The film is very boring, and we can’t see all of it.",
+ a:["Bộ phim rất thú vị và chúng tôi xem hết.","Bộ phim rất nhàm chán và chúng tôi không thể xem hết.","Bộ phim rất dễ và chúng tôi xem lại.","Bộ phim rất tuyệt và chúng tôi muốn xem thêm."],
+ e:"boring = nhàm chán; can’t see all of it = không thể xem hết.", c:1},
+{q:"I live in Krakow and I have two little brothers.",
+ a:["Tôi sống ở Krakow và tôi có hai em trai nhỏ.","Tôi sống ở Krakow và tôi có hai chị gái.","Tôi đến Krakow để thăm hai người bạn.","Tôi sống với hai anh trai ở một thành phố khác."],
+ e:"live in = sống ở; two little brothers = hai em trai nhỏ.", c:0},
+{q:"I like to read «Muc Tim» very much. It’s my favorite magazine.",
+ a:["Tôi rất thích đọc «Muc Tim». Đó là tạp chí yêu thích của tôi.","Tôi không thích đọc «Muc Tim». Đó là cuốn sách khó nhất.","Tôi chỉ đọc «Muc Tim» một lần. Đó là tạp chí mới.","Tôi thích viết «Muc Tim». Đó là bài tập của tôi."],
+ e:"like ... very much = rất thích; favorite = yêu thích nhất; magazine = tạp chí.", c:0},
+{q:"Mai is on the phone, chatting with friends.",
+ a:["Mai đang gọi điện thoại và trò chuyện với bạn bè.","Mai đang viết thư cho bạn bè.","Mai đang chơi thể thao với bạn bè.","Mai đang học bài một mình."],
+ e:"on the phone = đang nói chuyện điện thoại; chatting with friends = trò chuyện với bạn bè.", c:0},
+{q:"My friend is a creative person. She likes making new things.",
+ a:["Bạn tôi là người sáng tạo. Cô ấy thích làm những thứ mới.","Bạn tôi là người rất cẩn thận. Cô ấy không thích làm gì.","Bạn tôi là người nhút nhát. Cô ấy thích ngủ.","Bạn tôi là người lười biếng. Cô ấy ghét những thứ mới."],
+ e:"creative = sáng tạo; make new things = làm những thứ mới.", c:0},
+{q:"Mimi is listening to music now.",
+ a:["Mimi đang nghe nhạc.","Mimi thường chơi bóng đá.","Mimi đang làm bài tập.","Mimi đang nói chuyện với mẹ."],
+ e:"is listening to music now = đang nghe nhạc ngay bây giờ.", c:0},
+{q:"She has short hair and big blue eyes.",
+ a:["Cô ấy có mái tóc ngắn và đôi mắt xanh to.","Cô ấy có mái tóc dài và mắt nâu nhỏ.","Cô ấy có mái tóc vàng dài và mắt đen.","Cô ấy có tóc ngắn và đôi tai to."],
+ e:"short hair = tóc ngắn; big blue eyes = đôi mắt xanh to.", c:0},
+{q:"What does your friend look like? — She has black eyes.",
+ a:["Bạn của bạn trông như thế nào? — Cô ấy có đôi mắt đen.","Bạn của bạn thích gì? — Cô ấy thích thể thao.","Bạn của bạn đang làm gì? — Cô ấy đang học.","Bạn của bạn có tính cách thế nào? — Cô ấy rất vui tính."],
+ e:"What does ... look like? hỏi về ngoại hình; black eyes = mắt đen.", c:0},
+{q:"What is he like? — He is sporty.",
+ a:["Anh ấy trông như thế nào? — Anh ấy có tóc ngắn.","Anh ấy là người như thế nào? — Anh ấy thích thể thao/năng động.","Anh ấy đang làm gì? — Anh ấy đang đói.","Anh ấy sống ở đâu? — Anh ấy ở trường."],
+ e:"What is he like? hỏi về tính cách/đặc điểm; sporty = thích thể thao, năng động.", c:1},
+{q:"Do you have a best friend? — Certainly.",
+ a:["Bạn có bạn thân không? — Chắc chắn là có.","Bạn có bạn thân không? — Không, tôi không có.","Bạn có bạn thân không? — Tôi không biết.","Bạn có bạn thân không? — Không đời nào."],
+ e:"Certainly = chắc chắn, tất nhiên. Đây là câu trả lời khẳng định.", c:0}
+];
+
+const quiz = document.getElementById("quiz");
+questions.forEach((x,i)=>{
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=`<div class="qnum">Question ${i+1}</div>
+  <div class="sentence">${x.q}</div>
+  ${x.a.map((o,j)=>`<label class="option" data-q="${i}" data-a="${j}">
+    <input type="radio" name="q${i}" value="${j}"> ${String.fromCharCode(65+j)}. ${o}
+  </label>`).join("")}
+  <div class="explain" id="e${i}"></div>`;
+  quiz.appendChild(card);
+});
+
+function updateProgress(){
+  let answered=0;
+  questions.forEach((_,i)=>{if(document.querySelector(`input[name=q${i}]:checked`)) answered++;});
+  document.getElementById("bar").style.width=(answered/questions.length*100)+"%";
+}
+document.addEventListener("change",updateProgress);
+
+function checkQuiz(){
+  let score=0;
+  questions.forEach((x,i)=>{
+    const chosen=document.querySelector(`input[name=q${i}]:checked`);
+    const opts=document.querySelectorAll(`[data-q="${i}"]`);
+    opts.forEach(o=>o.classList.remove("correct","wrong"));
+    opts[x.c].classList.add("correct");
+    if(chosen){
+      const v=Number(chosen.value);
+      if(v===x.c) score++;
+      else opts[v].classList.add("wrong");
+    }
+    const exp=document.getElementById("e"+i);
+    exp.style.display="block";
+    exp.innerHTML=`<b>${chosen && Number(chosen.value)===x.c ? "✓ Correct!" : "✗ Correct answer: "+String.fromCharCode(65+x.c)}</b><br>${x.e}`;
+  });
+  const pct=Math.round(score/questions.length*100);
+  document.getElementById("score").textContent=`${score} / ${questions.length} (${pct}%)`;
+  document.getElementById("message").textContent =
+    pct>=90 ? "Excellent! You understand the meanings very well." :
+    pct>=70 ? "Good job! Review the explanations for the questions you missed." :
+    "Keep practising. Focus on the key vocabulary in each sentence.";
+  document.getElementById("result").style.display="block";
+  document.getElementById("result").scrollIntoView({behavior:"smooth"});
+}
+function resetQuiz(){
+  document.querySelectorAll('input[type=radio]').forEach(x=>x.checked=false);
+  document.querySelectorAll('.option').forEach(x=>x.classList.remove("correct","wrong"));
+  document.querySelectorAll('.explain').forEach(x=>x.style.display="none");
+  document.getElementById("result").style.display="none";
+  document.getElementById("bar").style.width="0%";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+</script>
+
+<!-- ADDED SECTION: PRACTICE FROM THE PROVIDED IMAGES -->
+<section class="image-practice">
+  <div class="practice-header">
+    <h2>Part 2 — Practice from the Provided Exercises</h2>
+    <p>Choose the correct answer for each question. This section follows the exercises in the provided images.</p>
+    <div class="practice-progress"><div id="pbar"></div></div>
+  </div>
+  <div id="practiceQuiz"></div>
+  <div class="practice-result" id="practiceResult">
+    <div class="bigscore" id="practiceScore"></div>
+    <div id="practiceMessage"></div>
+    <button onclick="checkPractice()">Check Again</button>
+    <button class="practice-reset" onclick="resetPractice()">Reset</button>
+  </div>
+  <div class="practice-actions">
+    <button onclick="checkPractice()">Check Answers</button>
+    <button class="practice-reset" onclick="resetPractice()">Reset</button>
+  </div>
+</section>
+<style>
+.image-practice{margin-top:32px}
+.practice-header{
+  background:linear-gradient(135deg,#0f9d58,#16a085);color:white;padding:22px;
+  border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,.12)
+}
+.practice-header h2{margin:0 0 8px;font-size:24px}
+.practice-header p{margin:0;line-height:1.5}
+.practice-progress{height:10px;background:rgba(255,255,255,.25);border-radius:20px;margin-top:14px;overflow:hidden}
+#pbar{height:100%;width:0;background:#ffe66d;transition:.25s}
+.pcard{background:white;margin:14px 0;padding:18px;border-radius:18px;
+  box-shadow:0 4px 15px rgba(0,0,0,.07);border:1px solid #e6edf2}
+.pqnum{font-weight:800;color:#0f9d58;margin-bottom:8px}
+.pquestion{font-size:18px;font-weight:700;line-height:1.5;background:#f1fbf6;padding:12px;border-radius:12px}
+.poption{display:block;margin:9px 0;padding:12px;border:2px solid #e2e8ee;border-radius:12px;
+  cursor:pointer;line-height:1.4;transition:.15s}
+.poption:hover{border-color:#4dbf82;background:#f7fffb}
+.poption input{margin-right:8px}
+.pcorrect{background:#e8fff0!important;border-color:#20a35a!important}
+.pwrong{background:#fff0f0!important;border-color:#e24c4c!important}
+.pexplain{display:none;background:#fff8d9;padding:11px;border-radius:11px;margin-top:10px;line-height:1.5}
+.practice-result{display:none;background:white;margin:18px 0;padding:20px;border-radius:18px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+.bigscore{font-size:29px;font-weight:800;color:#0f9d58;margin-bottom:8px}
+.practice-actions{text-align:center;margin:20px 0}
+.practice-actions button,.practice-result button{border:0;border-radius:14px;padding:14px 22px;font-size:17px;font-weight:700;
+background:#0f9d58;color:white;cursor:pointer;margin:6px}
+.practice-reset{background:#5b4bdb!important}
+@media(max-width:600px){.practice-header{padding:18px}.practice-header h2{font-size:21px}.pquestion{font-size:16px}.poption{font-size:15px}}
+</style>
+<script>
+const practiceQuestions = [{"q": "Mr Hung ______ to your mother.", "a": ["is talking", "Does talk", "is talks", "Do talk"], "c": 0, "e": "Hành động đang diễn ra → dùng hiện tại tiếp diễn: is talking."}, {"q": "Lan is really ______. She always helps other people.", "a": ["kind", "loving", "confident", "clever"], "c": 0, "e": "kind = tốt bụng; câu sau nói Lan luôn giúp người khác."}, {"q": "Nick likes meeting new people. He’s very ______.", "a": ["caring", "creative", "friendly", "fat"], "c": 2, "e": "friendly = thân thiện, phù hợp với việc thích gặp người mới."}, {"q": "Paola often helps me with my homework. She’s very ______.", "a": ["kind", "shy", "lazy", "short"], "c": 0, "e": "kind = tốt bụng."}, {"q": "Kim is very ______. She pays attention to what she does.", "a": ["active", "short", "shy", "careful"], "c": 3, "e": "careful = cẩn thận; pay attention = chú ý."}, {"q": "Nam can wait hours for his friends without getting angry. He is a ______ boy.", "a": ["hard-working", "patient", "careful", "lazy"], "c": 1, "e": "patient = kiên nhẫn."}, {"q": "Get up! Don’t be lazy. Be ______ Susan!", "a": ["caring", "hard-working", "friendly", "shy"], "c": 1, "e": "hard-working = chăm chỉ."}, {"q": "Patrick is very ______. He always does well in tests.", "a": ["loving", "funny", "short", "clever"], "c": 3, "e": "clever = thông minh."}, {"q": "Children are often ______. They hide behind their mothers when guests come.", "a": ["kind", "shy", "clever", "slim"], "c": 1, "e": "shy = nhút nhát."}, {"q": "Lan is always ______. She studies more than four hours a day and never misses her homework.", "a": ["active", "hard-working", "smart", "shy"], "c": 1, "e": "hard-working = chăm chỉ."}, {"q": "My mum always asks me to wash my ______ before meals.", "a": ["fingers", "arms", "hands", "legs"], "c": 2, "e": "wash my hands = rửa tay."}, {"q": "The baby next to me is very ______. He talks all the time, which really annoys me.", "a": ["talkative", "silent", "lovely", "friendly"], "c": 0, "e": "talkative = nói nhiều, hay nói."}, {"q": "The part between the head and the body is the ______.", "a": ["shoulders", "hip", "arms", "neck"], "c": 3, "e": "neck = cổ."}, {"q": "Next summer Milke’s parents ______ him to New York to see a new film.", "a": ["taking", "is taking", "are taking", "take"], "c": 2, "e": "Chủ ngữ Milke’s parents là số nhiều → are taking."}, {"q": "My brother can do all difficult Math exercises. He is a(n) ______ student.", "a": ["intelligent", "confident", "careful", "carefully"], "c": 0, "e": "intelligent = thông minh; cần tính từ trước danh từ student."}, {"q": "Please be ______ when you have to use fire to cook.", "a": ["happy", "careful", "quiet", "good"], "c": 1, "e": "be careful = hãy cẩn thận."}, {"q": "Daisy is very ______ to take the test. She is a very good student.", "a": ["confidently", "confidentially", "unconfident", "confident"], "c": 3, "e": "confident = tự tin; cần tính từ sau be."}, {"q": "The film is very ______, and we can’t see all of it.", "a": ["exciting", "boring", "wonderful", "easy"], "c": 1, "e": "boring = nhàm chán."}, {"q": "I live ______ Krakow and I have two little brothers.", "a": ["on", "at", "to", "in"], "c": 3, "e": "live in + thành phố/quốc gia."}, {"q": "I like to read «Muc Tim» very much. It’s my ______ magazine.", "a": ["nice", "quickly", "happiness", "favorite"], "c": 3, "e": "favorite = yêu thích."}, {"q": "Mai is on the phone, chatting ______ friends.", "a": ["to", "on", "with", "for"], "c": 2, "e": "chat with somebody = trò chuyện với ai."}, {"q": "My friend is a ______ person. She likes making new things.", "a": ["careful", "friendly", "creative", "active"], "c": 2, "e": "creative = sáng tạo."}, {"q": "Mimi ______ to music now.", "a": ["listens", "listen", "is listening", "listening"], "c": 2, "e": "now → hành động đang diễn ra → is listening."}, {"q": "She has short hair and big blue ______.", "a": ["mouth", "hand", "cheek", "eyes"], "c": 3, "e": "blue eyes = đôi mắt xanh."}, {"q": "What does your friend look like?", "a": ["She is very active.", "She has a long ruler.", "She has black eyes.", "She is funny."], "c": 2, "e": "What does ... look like? hỏi về ngoại hình; black eyes là đặc điểm ngoại hình."}, {"q": "What is he like?", "a": ["He has short hair.", "He is tall.", "He is hungry.", "He is sporty."], "c": 3, "e": "What is he like? hỏi về đặc điểm/tính cách; sporty = năng động, thích thể thao."}, {"q": "Do you have a best friend?", "a": ["Certainly.", "No, I am not.", "Yes, I can.", "Not at all."], "c": 0, "e": "Certainly = chắc chắn/tất nhiên, phù hợp với câu hỏi Do you have...?"}];
+
+const practiceQuiz = document.getElementById("practiceQuiz");
+practiceQuestions.forEach((x,i)=>{
+  const card=document.createElement("div");
+  card.className="pcard";
+  card.innerHTML=`<div class="pqnum">Question ${i+1}</div>
+  <div class="pquestion">${x.q}</div>
+  ${x.a.map((o,j)=>`<label class="poption" data-pq="${i}" data-pa="${j}">
+    <input type="radio" name="pq${i}" value="${j}"> ${String.fromCharCode(65+j)}. ${o}
+  </label>`).join("")}
+  <div class="pexplain" id="pe${i}"></div>`;
+  practiceQuiz.appendChild(card);
+});
+document.addEventListener("change",updatePracticeProgress);
+function updatePracticeProgress(){
+  let n=0;
+  practiceQuestions.forEach((_,i)=>{if(document.querySelector(`input[name=pq${i}]:checked`))n++;});
+  document.getElementById("pbar").style.width=(n/practiceQuestions.length*100)+"%";
+}
+function checkPractice(){
+  let score=0;
+  practiceQuestions.forEach((x,i)=>{
+    const chosen=document.querySelector(`input[name=pq${i}]:checked`);
+    const opts=document.querySelectorAll(`[data-pq="${i}"]`);
+    opts.forEach(o=>o.classList.remove("pcorrect","pwrong"));
+    opts[x.c].classList.add("pcorrect");
+    const exp=document.getElementById("pe"+i);
+    if(chosen && Number(chosen.value)===x.c){
+      score++;
+      exp.innerHTML="<b>✓ Correct!</b><br>"+x.e;
+    }else{
+      if(chosen) opts[Number(chosen.value)].classList.add("pwrong");
+      exp.innerHTML="<b>✗ Correct answer: "+String.fromCharCode(65+x.c)+"</b><br>"+x.e;
+    }
+    exp.style.display="block";
+  });
+  const pct=Math.round(score/practiceQuestions.length*100);
+  document.getElementById("practiceScore").textContent=`${score} / ${practiceQuestions.length} (${pct}%)`;
+  document.getElementById("practiceMessage").textContent =
+    pct>=90 ? "Excellent!" : pct>=70 ? "Good job! Review the explanations for the questions you missed." : "Keep practising and review the vocabulary.";
+  document.getElementById("practiceResult").style.display="block";
+  document.getElementById("practiceResult").scrollIntoView({behavior:"smooth"});
+}
+function resetPractice(){
+  document.querySelectorAll('#practiceQuiz input[type=radio]').forEach(x=>x.checked=false);
+  document.querySelectorAll('.poption').forEach(x=>x.classList.remove("pcorrect","pwrong"));
+  document.querySelectorAll('.pexplain').forEach(x=>x.style.display="none");
+  document.getElementById("practiceResult").style.display="none";
+  document.getElementById("pbar").style.width="0%";
+  document.querySelector(".image-practice").scrollIntoView({behavior:"smooth"});
+}
+</script>
+
+</body>
+</html>
